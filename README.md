@@ -31,9 +31,13 @@ python traffic-analyser.py --interface "YourInterfaceName" --protocols tcp udp -
 ```
 
 ### Command Line Arguments
+
 --interface: The network interface to sniff on (GUID or path).
+
 --protocols: Space-separated list of protocols to filter packets by (default: tcp udp icmp arp).
+
 --ip: Space-separated list of IP addresses to filter packets by.
+
 --output: Optional file to save captured packets in PCAP format.
 
 ## Example
