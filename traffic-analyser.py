@@ -16,10 +16,15 @@ stats = {
 # Global list to store captured packets
 packets = []
 
-# List of well-known suspicious ports (commonly used by malware)
-suspicious_ports = {6667, 12345, 31337, 54321}
-
 def packet_callback(packet):
+    if packet.haslayer(IP):
+        ip_src = packet[IP].src
+        ip_dst = packet[IP].dst
+
+        # Check if the packet matches the filter IP addresses
+        if ip_src not in args.ip_addresses and ip_dst not in args.ip_addresses:
+            return  # Skip this packet if it doesn't match the filter
+
     # Increment the packet count
     stats["packet_count"] += 1
     # Add the packet length to the byte count
@@ -121,9 +126,16 @@ def main():
     parser.add_argument("--interface", required=True, help="Network interface to sniff on (GUID or path)")
     parser.add_argument("--protocols", nargs='+', choices=['tcp', 'udp', 'icmp', 'arp'], default=['tcp', 'udp', 'icmp', 'arp'], help="Protocols to filter packets by (space-separated list)")
     parser.add_argument("--output", help="File to save captured packets")
+    parser.add_argument("--ip-addresses", nargs='*', help="List of IP addresses to filter packets by (space-separated list)")
     
     global args
     args = parser.parse_args()
+
+    # Convert IP addresses to a set for fast lookup
+    if args.ip_addresses:
+        args.ip_addresses = set(args.ip_addresses)
+    else:
+        args.ip_addresses = set()
 
     # Construct the filter string for multiple protocols
     filter_str = build_filter_string(args.protocols)
@@ -142,7 +154,7 @@ def main():
         wrpcap(args.output, packets)
         print(f"Packets saved to {args.output}")
 
-    # Print packet information
+    # Print packet statistics
     print_stats()
 
 if __name__ == "__main__":
